@@ -1,0 +1,42 @@
+{
+  "kind": "collectionType",
+  "collectionName": "hubs",
+  "info": {
+    "singularName": "hub",
+    "pluralName": "hubs",
+    "displayName": "Hub",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "is_locked": {
+      "type": "boolean",
+      "default": false
+    },
+    "chapters": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::chapter.chapter",
+      "mappedBy": "hub"
+    },
+    "slug": {
+      "type": "string",
+      "required": true
+    },
+    "color": {
+      "type": "string"
+    },
+    "design_url": {
+      "type": "string"
+    }
+  }
+}
