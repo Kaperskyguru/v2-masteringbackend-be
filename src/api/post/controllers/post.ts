@@ -42,7 +42,7 @@ export default factories.createCoreController(
             categories,
             tags,
             author,
-            // thumbnail,
+            thumbnail,
             // attachments
           } = post;
           try {
@@ -158,6 +158,7 @@ export default factories.createCoreController(
                   ...postData,
                   author: { connect: authors },
                   is_public: true,
+                  image: thumbnail,
                   categories: { connect: cats },
                   tags: { connect: newTags },
                 },
