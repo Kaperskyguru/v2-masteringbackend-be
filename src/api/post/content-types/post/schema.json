@@ -69,6 +69,23 @@
     "is_public": {
       "type": "boolean",
       "default": true
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "hub",
+        "definitive",
+        "sponsored",
+        "ultimate"
+      ]
+    },
+    "color": {
+      "type": "string"
+    },
+    "chapters": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::chapter.chapter"
     }
   }
 }

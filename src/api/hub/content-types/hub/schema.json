@@ -37,6 +37,14 @@
     },
     "design_url": {
       "type": "string"
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "hub",
+        "definitive"
+      ],
+      "default": "hub"
     }
   }
 }

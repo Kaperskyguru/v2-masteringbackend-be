@@ -38,6 +38,15 @@
     },
     "slug": {
       "type": "string"
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "hub",
+        "ultimate",
+        "definitive",
+        "sponsored"
+      ]
     }
   }
 }
