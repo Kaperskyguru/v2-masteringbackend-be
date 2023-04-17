@@ -157,6 +157,7 @@ export default factories.createCoreController(
                 data: {
                   ...postData,
                   author: { connect: authors },
+                  is_public: true,
                   categories: { connect: cats },
                   tags: { connect: newTags },
                 },

@@ -65,6 +65,10 @@
     },
     "image": {
       "type": "string"
+    },
+    "is_public": {
+      "type": "boolean",
+      "default": true
     }
   }
 }
