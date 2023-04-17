@@ -35,14 +35,6 @@
       "target": "api::tag.tag",
       "mappedBy": "post"
     },
-    "image": {
-      "type": "media",
-      "multiple": false,
-      "required": false,
-      "allowedTypes": [
-        "images"
-      ]
-    },
     "excerpt": {
       "type": "richtext",
       "required": true
@@ -64,6 +56,15 @@
       "relation": "manyToOne",
       "target": "api::chapter.chapter",
       "inversedBy": "posts"
+    },
+    "author": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::author.author",
+      "inversedBy": "posts"
+    },
+    "image": {
+      "type": "string"
     }
   }
 }

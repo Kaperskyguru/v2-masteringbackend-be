@@ -4,6 +4,7 @@
 
 import { factories } from "@strapi/strapi";
 import axios from "axios";
+// import { File, FormData } from "formdata-node";
 import https from "https";
 
 // At request level
@@ -15,135 +16,164 @@ export default factories.createCoreController(
   "api::post.post",
   ({ strapi }) => ({
     async import(ctx) {
-      const { data } = await axios.get(
-        "http://masteringbackend.solomoneseme.com/api/get_posts?count=72",
-        { httpsAgent: agent }
-      );
+      const posts = []
+      try {
 
-      if (!data?.posts?.length) return;
 
-      const posts = await Promise.all(
-        data.posts.map(
-          (post) =>
-            new Promise(async (resolve, reject) => {
-              //resolve when the post is created
+        const { data } = await axios.get(
+          "http://masteringbackend.solomoneseme.com/api/get_posts?count=80",
+          { httpsAgent: agent }
+        );
 
-              const {
-                title,
-                slug,
-                content,
-                date,
-                is_sticky,
-                excerpt,
-                categories,
-                tags,
-                // thumbnail: image,
-              } = post;
-              try {
-                // featured_image functionality here that we built
-                // out with our helper functions
-                // let downloaded: unknown = null;
-                // if (image) {
-                //   downloaded = await strapi
-                //     .service("api::post.post")
-                //     .downloadImage(image);
-                // }
-                // let file: unknown = null;
-                // if (downloaded) {
-                //   let [{ id: fileId }] = await strapi
-                //     .service("api::post.post")
-                //     .uploadImage(downloaded);
-                //   file = fileId;
-                // }
-                // // now that we have fileId we can complete our postData object
-                const postData = {
-                  title,
-                  content,
-                  slug,
-                  is_sticky,
-                  excerpt,
-                  //   image: [file],
-                  publishedAt: date,
-                  createdAt: date,
-                };
 
-                // Import Categories
-                let cats = [];
-                await categories.map(async (cat: any) => {
-                  let oldCats = await strapi.entityService.findMany(
-                    "api::category.category",
-                    {
-                      filters: { slug: { $eq: cat.slug } },
-                    }
-                  );
 
-                  if (oldCats?.length) {
-                    cats.push(oldCats[0].id);
-                    return;
-                  }
-                  const entry = await strapi
-                    .service("api::category.category")
-                    .create({
-                      data: {
-                        name: cat.title,
-                        slug: cat.slug,
-                        description: cat.description,
-                      },
-                    });
+        if (!data?.posts?.length) return;
 
-                  cats.push(entry.id);
-                });
 
-                // Import Tags
-                let newTags = [];
-                await tags.map(async (tag: any) => {
-                  let oldTags = await strapi.entityService.findMany(
-                    "api::tag.tag",
-                    {
-                      filters: { slug: { $eq: tag.slug } },
-                    }
-                  );
+        for (const post of data?.posts) {
+          console.log('asa')
+          const {
+            title,
+            slug,
+            content,
+            date,
+            is_sticky,
+            excerpt,
+            categories,
+            tags,
+            author,
+            // thumbnail,
+            // attachments
+          } = post;
+          try {
+            // featured_image functionality here that we built
+            // // now that we have fileId we can complete our postData object
+            const postData = {
+              title,
+              content,
+              slug,
+              is_sticky,
+              excerpt,
+              // image: [blob],
+              publishedAt: date,
+              createdAt: date,
+            };
 
-                  console.log(oldTags);
-                  if (oldTags?.length) {
-                    newTags.push(oldTags[0].id);
-                    return;
-                  }
+            let authors = [];
 
-                  const entry = await strapi.service("api::tag.tag").create({
-                    data: {
-                      name: tag.title,
-                      slug: tag.slug,
-                      description: tag.description,
-                    },
-                  });
-
-                  newTags.push(entry.id);
-                });
-
-                // use the strapi services create function to create entry
-                let newPost = await strapi.entityService.findMany(
-                  "api::post.post",
-                  {
-                    filters: { slug: { $eq: post.slug } },
-                  }
-                );
-
-                if (!newPost?.length)
-                  newPost = await strapi.service("api::post.post").create({
-                    data: {
-                      ...postData,
-                      categories: { connect: cats },
-                      tags: { connect: newTags },
-                    },
-                  });
-                resolve(newPost);
-              } catch (err) {
-                reject(err);
+            let oldAuthors = await strapi.entityService.findMany(
+              "api::author.author",
+              {
+                filters: { slug: { $eq: author.slug } },
               }
-            })
-        )
-      );
+            );
+
+            if (oldAuthors?.length) {
+              authors.push(oldAuthors[0].id);
+            } else {
+              const entry = await strapi
+                .service("api::author.author")
+                .create({
+                  data: {
+                    name: author.name,
+                    slug: author.slug,
+                    first_name: author.first_name,
+                    last_name: author.last_name,
+                    url: author.url,
+                    nickname: author.nickname,
+                    description: author.description,
+                  },
+                });
+
+              authors.push(entry.id);
+            }
+
+            // Import Categories
+            let cats = [];
+            await categories.map(async (cat: any) => {
+              let oldCats = await strapi.entityService.findMany(
+                "api::category.category",
+                {
+                  filters: { slug: { $eq: cat.slug } },
+                }
+              );
+
+              if (oldCats?.length) {
+                cats.push(oldCats[0].id);
+                return;
+              } else {
+                const entry = await strapi
+                  .service("api::category.category")
+                  .create({
+                    data: {
+                      name: cat.title,
+                      slug: cat.slug,
+                      description: cat.description,
+                    },
+                  });
+
+                cats.push(entry.id);
+              }
+            });
+
+            // Import Tags
+            let newTags = [];
+            await tags.map(async (tag: any) => {
+              let oldTags = await strapi.entityService.findMany(
+                "api::tag.tag",
+                {
+                  filters: { slug: { $eq: tag.slug } },
+                }
+              );
+
+              console.log(oldTags);
+              if (oldTags?.length) {
+                newTags.push(oldTags[0].id);
+                return;
+              } else {
+
+                const entry = await strapi.service("api::tag.tag").create({
+                  data: {
+                    name: tag.title,
+                    slug: tag.slug,
+                    description: tag.description,
+                  },
+                });
+
+                newTags.push(entry.id);
+              }
+            });
+
+            // use the strapi services create function to create entry
+            let newPost = await strapi.entityService.findMany(
+              "api::post.post",
+              {
+                filters: { slug: { $eq: post.slug } },
+              }
+            );
+
+            if (!newPost?.length) {
+              newPost = await strapi.service("api::post.post").create({
+                data: {
+                  ...postData,
+                  author: { connect: authors },
+                  categories: { connect: cats },
+                  tags: { connect: newTags },
+                },
+              });
+              posts.push(newPost)
+            }
+
+          } catch (error) {
+            console.error(error)
+          }
+        }
+
+
+      } catch (error) {
+        console.log(error?.message ?? error)
+      }
+
       ctx.send(posts);
     },
   })
