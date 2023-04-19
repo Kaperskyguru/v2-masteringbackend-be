@@ -62,6 +62,9 @@ export default ({ env }) => {
     },
   };
 
+
+  console.log(client, connections)
+
   return {
     connection: {
       client,
