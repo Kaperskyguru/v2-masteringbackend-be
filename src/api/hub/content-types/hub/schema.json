@@ -42,7 +42,8 @@
       "type": "enumeration",
       "enum": [
         "hub",
-        "definitive"
+        "definitive",
+        "pdf"
       ],
       "default": "hub"
     }
