@@ -46,6 +46,12 @@
     },
     "encharge_tag": {
       "type": "string"
+    },
+    "post": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::post.post",
+      "inversedBy": "chapters"
     }
   }
 }

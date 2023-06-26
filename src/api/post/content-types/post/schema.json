@@ -86,15 +86,16 @@
     "chapters": {
       "type": "relation",
       "relation": "oneToMany",
-      "target": "api::chapter.chapter"
+      "target": "api::chapter.chapter",
+      "mappedBy": "post"
     },
     "featured_image": {
-      "allowedTypes": [
-        "images"
-      ],
       "type": "media",
       "multiple": false,
-      "required": false
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
     }
   }
 }
