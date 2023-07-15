@@ -46,6 +46,12 @@
         "pdf"
       ],
       "default": "hub"
+    },
+    "encharge_tag": {
+      "type": "string"
+    },
+    "activate_waiting": {
+      "type": "boolean"
     }
   }
 }
