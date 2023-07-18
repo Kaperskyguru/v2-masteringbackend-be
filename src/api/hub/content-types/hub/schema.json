@@ -43,7 +43,8 @@
       "enum": [
         "hub",
         "definitive",
-        "pdf"
+        "pdf",
+        "book"
       ],
       "default": "hub"
     },
@@ -52,6 +53,13 @@
     },
     "activate_waiting": {
       "type": "boolean"
+    },
+    "image": {
+      "allowedTypes": [
+        "images"
+      ],
+      "type": "media",
+      "multiple": false
     }
   }
 }
