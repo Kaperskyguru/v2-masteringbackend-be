@@ -56,6 +56,12 @@
     "is_premium": {
       "type": "boolean",
       "default": false
+    },
+    "plan_id": {
+      "type": "string"
+    },
+    "price": {
+      "type": "string"
     }
   }
 }
