@@ -97,6 +97,12 @@
       "allowedTypes": [
         "images"
       ]
+    },
+    "resource": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::chapter.chapter",
+      "inversedBy": "resources"
     }
   }
 }

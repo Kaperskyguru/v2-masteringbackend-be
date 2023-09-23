@@ -62,6 +62,12 @@
     },
     "price": {
       "type": "string"
+    },
+    "resources": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::post.post",
+      "mappedBy": "resource"
     }
   }
 }
