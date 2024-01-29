@@ -26,6 +26,9 @@
     },
     "image": {
       "type": "string"
+    },
+    "description": {
+      "type": "richtext"
     }
   }
 }
