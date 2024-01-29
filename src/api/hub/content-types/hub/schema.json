@@ -44,7 +44,8 @@
         "hub",
         "definitive",
         "pdf",
-        "book"
+        "book",
+        "course"
       ],
       "default": "hub"
     },
@@ -71,6 +72,12 @@
     },
     "price": {
       "type": "float"
+    },
+    "topics": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::topic.topic",
+      "mappedBy": "hubs"
     }
   }
 }
