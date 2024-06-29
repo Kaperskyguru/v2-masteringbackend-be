@@ -22,6 +22,30 @@ export default ({ env }) => ({
           field: "slug",
           references: "title",
         },
+        project: {
+          field: "slug",
+          references: "title",
+        },
+
+        hub: {
+          field: "slug",
+          references: "title",
+        },
+
+        chapter: {
+          field: "slug",
+          references: "title",
+        },
+
+        category: {
+          field: "slug",
+          references: "name",
+        },
+
+        tag: {
+          field: "slug",
+          references: "name",
+        },
       },
     },
   },
