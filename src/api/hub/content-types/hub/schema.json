@@ -78,6 +78,17 @@
       "relation": "manyToMany",
       "target": "api::topic.topic",
       "mappedBy": "hubs"
+    },
+    "contents": {
+      "type": "json"
+    },
+    "author": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::author.author"
+    },
+    "paddlePlanId": {
+      "type": "biginteger"
     }
   }
 }
