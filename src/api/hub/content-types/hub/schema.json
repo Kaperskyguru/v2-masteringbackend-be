@@ -89,6 +89,9 @@
     },
     "paddlePlanId": {
       "type": "biginteger"
+    },
+    "paddle_plan_id": {
+      "type": "string"
     }
   }
 }
