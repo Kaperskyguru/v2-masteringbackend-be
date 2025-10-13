@@ -1,0 +1,48 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ai_tools",
+  "info": {
+    "singularName": "ai-tool",
+    "pluralName": "ai-tools",
+    "displayName": "AiTools",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "website": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "pricing": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "json"
+    },
+    "featured": {
+      "type": "boolean"
+    },
+    "logo": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": false
+    }
+  }
+}

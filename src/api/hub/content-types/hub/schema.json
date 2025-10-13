@@ -88,7 +88,7 @@
       "target": "api::author.author"
     },
     "paddlePlanId": {
-      "type": "biginteger"
+      "type": "string"
     },
     "paddle_plan_id": {
       "type": "string"
