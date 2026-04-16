@@ -53,6 +53,30 @@
     },
     "image": {
       "type": "string"
+    },
+    "bio": {
+      "type": "text",
+      "description": "Author biography"
+    },
+    "avatar": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "x": {
+      "type": "string",
+      "description": "X (Twitter) profile URL"
+    },
+    "linkedin": {
+      "type": "string",
+      "description": "LinkedIn profile URL"
+    },
+    "facebook": {
+      "type": "string",
+      "description": "Facebook profile URL"
     }
   }
 }
