@@ -19,6 +19,10 @@
     "content": {
       "type": "richtext"
     },
+    "read_time": {
+      "type": "integer",
+      "min": 0
+    },
     "slug": {
       "type": "string",
       "required": true,

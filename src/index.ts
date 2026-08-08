@@ -1,4 +1,5 @@
 import slugify from "slugify";
+import { calculateReadTime } from "./utils/read-time";
 
 /**
  * Replacement for strapi-plugin-slugify, which has no Strapi 5 release
@@ -17,6 +18,17 @@ const SLUGIFIED_CONTENT_TYPES: Record<string, { field: string; references: strin
   "api::tag.tag": { field: "slug", references: "name" },
 };
 
+/**
+ * Content types that carry a denormalised `read_time` derived from `content`.
+ *
+ * This exists so list endpoints never have to fetch `content`. The blog
+ * homepage was pulling every article body purely to count words for the
+ * "N min read" label — by far the largest part of that payload, and none of
+ * it rendered. Storing the number here lets the frontend select a handful of
+ * scalar fields instead.
+ */
+const READ_TIME_CONTENT_TYPES = ["api::post.post"];
+
 const toSlug = (value: string) =>
   slugify(value, { lower: true, strict: true, trim: true });
 
@@ -29,31 +41,41 @@ export default {
    */
   register({ strapi }) {
     strapi.documents.use(async (context, next) => {
-      const config = SLUGIFIED_CONTENT_TYPES[context.uid];
-
-      if (!config || !["create", "update"].includes(context.action)) {
+      if (!["create", "update"].includes(context.action)) {
         return next();
       }
 
       const data = (context.params as any)?.data;
       if (!data) return next();
 
-      const source = data[config.references];
+      // --- Slug generation ---
+      const slugConfig = SLUGIFIED_CONTENT_TYPES[context.uid];
+      if (slugConfig) {
+        const source = data[slugConfig.references];
 
-      // On create, always derive the slug when the source field is present and
-      // no slug was supplied explicitly.
-      if (context.action === "create") {
-        if (!data[config.field] && source) {
-          data[config.field] = toSlug(source);
+        if (context.action === "create") {
+          // On create, always derive the slug when the source field is present
+          // and no slug was supplied explicitly.
+          if (!data[slugConfig.field] && source) {
+            data[slugConfig.field] = toSlug(source);
+          }
+        } else if (source && data[slugConfig.field] === undefined) {
+          // On update, regenerate only when the source field is actually being
+          // changed and the caller did not set the slug themselves. This
+          // matches the old plugin's shouldUpdateSlug: true.
+          data[slugConfig.field] = toSlug(source);
         }
-        return next();
       }
 
-      // On update, regenerate only when the source field is actually being
-      // changed and the caller did not set the slug themselves. This matches
-      // the old plugin's shouldUpdateSlug: true.
-      if (source && data[config.field] === undefined) {
-        data[config.field] = toSlug(source);
+      // --- Read time ---
+      // Recompute whenever `content` is part of the write. If the caller set
+      // read_time explicitly, respect it.
+      if (
+        READ_TIME_CONTENT_TYPES.includes(context.uid) &&
+        typeof data.content === "string" &&
+        data.read_time === undefined
+      ) {
+        data.read_time = calculateReadTime(data.content);
       }
 
       return next();
