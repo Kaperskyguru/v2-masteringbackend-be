@@ -4,7 +4,6 @@
 
 import { factories } from "@strapi/strapi";
 import axios from "axios";
-// import { File, FormData } from "formdata-node";
 import https from "https";
 
 // At request level
@@ -12,26 +11,48 @@ const agent = new https.Agent({
   rejectUnauthorized: false,
 });
 
+/**
+ * Find an existing entry by slug, or create it. Returns the documentId.
+ *
+ * Strapi 5: relations are connected by `documentId` (a string), not the numeric
+ * `id` that v4 used. Returning the wrong one fails silently — the entry is
+ * created but the relation is simply not linked.
+ */
+const findOrCreateBySlug = async (
+  uid: any,
+  slug: string,
+  data: Record<string, unknown>
+): Promise<string | null> => {
+  if (!slug) return null;
+
+  const existing = await strapi.documents(uid).findMany({
+    filters: { slug: { $eq: slug } },
+    limit: 1,
+  });
+
+  if (existing?.length) {
+    return existing[0].documentId;
+  }
+
+  const entry = await strapi.documents(uid).create({ data });
+  return entry.documentId;
+};
+
 export default factories.createCoreController(
   "api::post.post",
   ({ strapi }) => ({
     async import(ctx) {
-      const posts = []
+      const posts = [];
+
       try {
-
-
         const { data } = await axios.get(
           "http://masteringbackend.solomoneseme.com/api/get_posts?count=80",
           { httpsAgent: agent }
         );
 
-
-
         if (!data?.posts?.length) return;
 
-
-        for (const post of data?.posts) {
-          console.log('asa')
+        for (const post of data.posts) {
           const {
             title,
             slug,
@@ -43,137 +64,97 @@ export default factories.createCoreController(
             tags,
             author,
             thumbnail,
-            // attachments
           } = post;
+
           try {
-            // featured_image functionality here that we built
-            // // now that we have fileId we can complete our postData object
             const postData = {
               title,
               content,
               slug,
               is_sticky,
               excerpt,
-              // image: [blob],
               publishedAt: date,
               createdAt: date,
             };
 
-            let authors = [];
-
-            let oldAuthors = await strapi.entityService.findMany(
+            // --- Author ---
+            const authorId = await findOrCreateBySlug(
               "api::author.author",
+              author?.slug,
               {
-                filters: { slug: { $eq: author.slug } },
+                name: author?.name,
+                slug: author?.slug,
+                first_name: author?.first_name,
+                last_name: author?.last_name,
+                url: author?.url,
+                nickname: author?.nickname,
+                description: author?.description,
               }
             );
 
-            if (oldAuthors?.length) {
-              authors.push(oldAuthors[0].id);
-            } else {
-              const entry = await strapi
-                .service("api::author.author")
-                .create({
-                  data: {
-                    name: author.name,
-                    slug: author.slug,
-                    first_name: author.first_name,
-                    last_name: author.last_name,
-                    url: author.url,
-                    nickname: author.nickname,
-                    description: author.description,
-                  },
-                });
+            // --- Categories ---
+            // Was `await categories.map(async ...)`, which awaits the array of
+            // promises rather than the promises themselves — `cats` was always
+            // empty by the time the post was created below.
+            const cats = (
+              await Promise.all(
+                (categories ?? []).map((cat: any) =>
+                  findOrCreateBySlug("api::category.category", cat?.slug, {
+                    name: cat?.title,
+                    slug: cat?.slug,
+                    description: cat?.description,
+                  })
+                )
+              )
+            ).filter(Boolean) as string[];
 
-              authors.push(entry.id);
-            }
+            // --- Tags ---
+            const newTags = (
+              await Promise.all(
+                (tags ?? []).map((tag: any) =>
+                  findOrCreateBySlug("api::tag.tag", tag?.slug, {
+                    name: tag?.title,
+                    slug: tag?.slug,
+                    description: tag?.description,
+                  })
+                )
+              )
+            ).filter(Boolean) as string[];
 
-            // Import Categories
-            let cats = [];
-            await categories.map(async (cat: any) => {
-              let oldCats = await strapi.entityService.findMany(
-                "api::category.category",
-                {
-                  filters: { slug: { $eq: cat.slug } },
-                }
-              );
+            // --- Post ---
+            const existingPosts = await strapi
+              .documents("api::post.post")
+              .findMany({
+                filters: { slug: { $eq: slug } },
+                limit: 1,
+              });
 
-              if (oldCats?.length) {
-                cats.push(oldCats[0].id);
-                return;
-              } else {
-                const entry = await strapi
-                  .service("api::category.category")
-                  .create({
-                    data: {
-                      name: cat.title,
-                      slug: cat.slug,
-                      description: cat.description,
-                    },
-                  });
-
-                cats.push(entry.id);
-              }
-            });
-
-            // Import Tags
-            let newTags = [];
-            await tags.map(async (tag: any) => {
-              let oldTags = await strapi.entityService.findMany(
-                "api::tag.tag",
-                {
-                  filters: { slug: { $eq: tag.slug } },
-                }
-              );
-
-              console.log(oldTags);
-              if (oldTags?.length) {
-                newTags.push(oldTags[0].id);
-                return;
-              } else {
-
-                const entry = await strapi.service("api::tag.tag").create({
-                  data: {
-                    name: tag.title,
-                    slug: tag.slug,
-                    description: tag.description,
-                  },
-                });
-
-                newTags.push(entry.id);
-              }
-            });
-
-            // use the strapi services create function to create entry
-            let newPost = await strapi.entityService.findMany(
-              "api::post.post",
-              {
-                filters: { slug: { $eq: post.slug } },
-              }
-            );
-
-            if (!newPost?.length) {
-              newPost = await strapi.service("api::post.post").create({
+            if (!existingPosts?.length) {
+              const newPost = await strapi.documents("api::post.post").create({
                 data: {
                   ...postData,
-                  author: { connect: authors },
+                  // `author` is manyToOne — a to-one relation. v5 takes the
+                  // documentId directly here; connect/disconnect/set are only
+                  // valid on to-many relations (categories, tags below).
+                  author: authorId,
                   is_public: true,
                   image: thumbnail,
                   categories: { connect: cats },
                   tags: { connect: newTags },
                 },
+                // v5 creates drafts by default. The source feed only contains
+                // already-published posts, so publish on create.
+                status: "published",
               });
-              posts.push(newPost)
-            }
 
+              posts.push(newPost);
+            }
           } catch (error) {
-            console.error(error)
+            console.error(error);
           }
         }
-
-
       } catch (error) {
-        console.log(error?.message ?? error)
+        console.log(error?.message ?? error);
       }
 
       ctx.send(posts);

@@ -3,50 +3,28 @@ export default ({ env }) => ({
     config: {
       provider: "aws-s3",
       providerOptions: {
-        accessKeyId: env("AWS_ACCESS_KEY_ID"),
-        secretAccessKey: env("AWS_ACCESS_SECRET"),
-        region: env("AWS_REGION"),
-        params: {
-          Bucket: env("AWS_BUCKET_NAME"),
+        s3Options: {
+          credentials: {
+            accessKeyId: env("AWS_ACCESS_KEY_ID"),
+            secretAccessKey: env("AWS_ACCESS_SECRET"),
+          },
+          region: env("AWS_REGION"),
+          params: {
+            ACL: env("AWS_ACL", "public-read"),
+            Bucket: env("AWS_BUCKET_NAME"),
+          },
         },
+      },
+      actionOptions: {
+        upload: {},
+        uploadStream: {},
+        delete: {},
       },
     },
   },
 
-  slugify: {
-    enabled: true,
-    config: {
-      shouldUpdateSlug: true,
-      contentTypes: {
-        post: {
-          field: "slug",
-          references: "title",
-        },
-        project: {
-          field: "slug",
-          references: "title",
-        },
-
-        hub: {
-          field: "slug",
-          references: "title",
-        },
-
-        chapter: {
-          field: "slug",
-          references: "title",
-        },
-
-        category: {
-          field: "slug",
-          references: "name",
-        },
-
-        tag: {
-          field: "slug",
-          references: "name",
-        },
-      },
-    },
-  },
+  // NOTE: strapi-plugin-slugify was removed during the v5 upgrade — it has no
+  // Strapi 5 release (last published 2.3.8, pinned to @strapi/strapi ^4.14.0).
+  // Slug generation is now handled by a Document Service middleware registered
+  // in src/index.ts. Content types and source fields are configured there.
 });
