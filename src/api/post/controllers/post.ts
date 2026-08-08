@@ -67,14 +67,17 @@ export default factories.createCoreController(
           } = post;
 
           try {
+            // NOTE: createdAt / publishedAt are deliberately NOT set here.
+            // Strapi 5 validates create/update input and rejects non-writable
+            // fields and internal timestamps (createdAt, createdBy, ...) with a
+            // 400. v4's Entity Service allowed them through. The original
+            // dates are restored via the Query Engine after create — see below.
             const postData = {
               title,
               content,
               slug,
               is_sticky,
               excerpt,
-              publishedAt: date,
-              createdAt: date,
             };
 
             // --- Author ---
@@ -147,6 +150,20 @@ export default factories.createCoreController(
                 status: "published",
               });
 
+              // Restore the original publication dates. The Document Service
+              // refuses to write timestamps (see postData above), so drop to
+              // the Query Engine, which bypasses entity validation.
+              //
+              // updateMany, not update: with Draft & Publish a document has
+              // both a draft and a published row, and both need the date for
+              // sorting to be consistent regardless of which version is read.
+              if (date) {
+                await strapi.db.query("api::post.post").updateMany({
+                  where: { documentId: newPost.documentId },
+                  data: { createdAt: date, publishedAt: date },
+                });
+              }
+
               posts.push(newPost);
             }
           } catch (error) {
@@ -157,7 +174,10 @@ export default factories.createCoreController(
         console.log(error?.message ?? error);
       }
 
-      ctx.send(posts);
+      // The Document Service is a data-access layer and returns UNSANITIZED
+      // data — private fields and restricted relations included. Anything
+      // returned from a controller must be sanitized explicitly.
+      ctx.send(await this.sanitizeOutput(posts, ctx));
     },
   })
 );
