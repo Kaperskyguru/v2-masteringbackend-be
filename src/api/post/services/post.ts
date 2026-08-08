@@ -51,7 +51,8 @@ const upload = async (imgPath) => {
   // get the buffersize using service function from upload plugin
 
   const uploadProvider = strapi.plugin("upload").service("provider");
-  const config = strapi.config.get("plugin.upload");
+  // v5: config namespaces use uid format ("plugin::upload"), not dot format.
+  const config: any = strapi.config.get("plugin::upload");
 
   const entity = {
     name,
@@ -80,7 +81,10 @@ const upload = async (imgPath) => {
   //   });
 
   await uploadProvider.upload(entity);
-  return strapi.query("plugin::upload.file").create({ data: entity });
+  // v5: strapi.query() was removed in favour of strapi.db.query().
+  // Media files stay on the Entity/DB layer — they are not documents, so the
+  // Document Service does not apply here.
+  return strapi.db.query("plugin::upload.file").create({ data: entity });
 };
 
 export default factories.createCoreService("api::post.post", ({ strapi }) => ({
