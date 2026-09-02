@@ -28,6 +28,9 @@
     "slugify": "^1.6.5",
     "styled-components": "^6.1.13"
   },
+  "resolutions": {
+    "sharp": "0.33.5"
+  },
   "author": {
     "name": "A Strapi developer"
   },
