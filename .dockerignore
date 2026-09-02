@@ -1,0 +1,24 @@
+# Build artifacts — produced inside the image, never copied in
+dist
+build
+.cache
+.tmp
+
+# Dependencies — installed inside the image
+node_modules
+
+# Secrets — supplied at runtime by Coolify, must never enter image layers
+.env
+.env.*
+
+# VCS and local noise
+.git
+.gitignore
+.github
+*.log
+.DS_Store
+.vscode
+.idea
+
+# Docs
+README.md
